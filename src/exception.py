@@ -1,11 +1,15 @@
+# src/exception.py
+
 import sys
-import logging
+from src.logger import logging
 
 def error_message_details(error, error_detail: sys):
     _, _, exc_tb = error_detail.exc_info()
     file_name = exc_tb.tb_frame.f_code.co_filename
-    # Fix the format issue here
-    error_message = f"Error occurred in python script name [{file_name}] line number [{exc_tb.tb_lineno}] error message [{str(error)}]"
+    error_message = (
+        f"Error occurred in python script name [{file_name}] "
+        f"line number [{exc_tb.tb_lineno}] error message [{str(error)}]"
+    )
     return error_message
 
 class CustomException(Exception):
@@ -17,7 +21,7 @@ class CustomException(Exception):
         return self.error_message
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.info("Starting the exception module...")
     try:
         a = 1 / 0
     except Exception as e:
