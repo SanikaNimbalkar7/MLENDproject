@@ -1,14 +1,15 @@
 import os
 import sys
+import pandas as pd
+from dataclasses import dataclass
+from sklearn.model_selection import train_test_split
+
 from src.exception import CustomException
 from src.logger import logging
-import pandas as pd
 
-from sklearn.model_selection import train_test_split
-from dataclasses import dataclass
-from src.components.data_transformation import DataTransformation
+from src.components.data_transformation import DataTransformation, DataTransformationConfig
+from src.components.model_trainer import ModelTrainer, ModelTrainerConfig
 
-from src.components.data_transformation import DataTransformationConfig
 
 @dataclass
 class DataIngestionConfig:
@@ -21,13 +22,14 @@ class DataIngestion:
         self.ingestion_config = DataIngestionConfig()
 
     def initiate_data_ingestion(self):
-        logging.info("Entered the data ingestion method or components")
+        logging.info("Entered the data ingestion method or component")
         try:
             df = pd.read_csv('Notebook/Data/stud.csv')
             logging.info('Read the dataset as dataframe')
 
             os.makedirs(os.path.dirname(self.ingestion_config.train_data_path), exist_ok=True)
             df.to_csv(self.ingestion_config.raw_data_path, index=False, header=True)
+            logging.info("Saved raw dataset to CSV")
 
             logging.info("Train-test split initiated")
             train_set, test_set = train_test_split(df, test_size=0.2, random_state=42)
@@ -44,12 +46,29 @@ class DataIngestion:
         except Exception as e:
             raise CustomException(e, sys)
 
+
 if __name__ == "__main__":
-    obj = DataIngestion()
-    train_data,test_data=obj.initiate_data_ingestion()
+    try:
+        # Step 1: Ingest data
+        ingestion = DataIngestion()
+        train_data_path, test_data_path = ingestion.initiate_data_ingestion()
 
-    data_transformation=DataTransformation()
-    data_transformation.initiate_data_transformation(train_data,test_data)
+        # Step 2: Transform data
+        transformation = DataTransformation()
+        train_arr, test_arr, preprocessor_path = transformation.initiate_data_transformation(
+            train_data_path, test_data_path
+        )
 
+        # Step 3: Train model
+        trainer = ModelTrainer()
+        r2_score = trainer.initiate_model_trainer(
+            train_arr, test_arr, preprocessor_path
+        )
 
-    
+        print(f"✅ Model training complete. R2 Score on test data: {r2_score:.4f}")
+        logging.info(f"Model training completed successfully with R2 Score: {r2_score:.4f}")
+
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        logging.error(f"Exception in pipeline execution: {e}")
+
