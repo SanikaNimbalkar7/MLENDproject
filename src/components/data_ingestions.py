@@ -65,7 +65,7 @@ if __name__ == "__main__":
             train_arr, test_arr, preprocessor_path
         )
 
-        print(f"✅ Model training complete. R2 Score on test data: {r2_score:.4f}")
+        print(f"Model training complete. R2 Score on test data: {r2_score:.4f}")
         logging.info(f"Model training completed successfully with R2 Score: {r2_score:.4f}")
 
     except Exception as e:
